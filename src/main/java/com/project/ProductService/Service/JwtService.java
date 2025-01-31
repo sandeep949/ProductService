@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 
+import static javax.crypto.Cipher.SECRET_KEY;
+
 @Service
 public class JwtService {
 
@@ -51,4 +53,12 @@ public class JwtService {
             return null; // Invalid token
         }
     }
+    public String extractUserId(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("jti", String.class);  // Assuming userId is stored in "jti" claim
+    }
 }
+

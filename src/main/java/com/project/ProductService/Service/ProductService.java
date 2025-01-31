@@ -46,14 +46,15 @@ public ProductDTO getProductDTOById(Long productId) {
     // Convert ProductModel to ProductDTO
     return new ProductDTO(
             product.getId(),
+            product.getUserId(),
             product.getName(),
             product.getDescription(),
             product.getPrice(),
             product.getQuantity(),
             product.getCategory(),
             product.getImageType(),
-            product.getImageData(),
-            product.getImageData().getBytes()
+            product.getImageData()
+
     );
 }
 
@@ -90,6 +91,28 @@ public ProductDTO getProductDTOById(Long productId) {
             return productRepository.findAll();
         }
 
+//    public ProductDTO getProductByUserId(Long userId) {
+//
+//        ProductModel product = productRepository.findByUserId(userId);
+////                .orElseThrow(() -> new ResourceNotFoundException("Product with ID " + userId + " not found"));
+//        // Convert ProductModel to ProductDTO
+//        return new ProductDTO(
+//                product.getId(),
+//                product.getUserId(),
+//                product.getName(),
+//                product.getDescription(),
+//                product.getPrice(),
+//                product.getQuantity(),
+//                product.getCategory(),
+//                product.getImageType(),
+//                product.getImageData(),
+//                product.getImageData().getBytes()
+//        );
+//    }
+
+    public List<ProductModel> getProductByUserId(Long userId) {
+        return productRepository.findByUserId(userId);
+    }
 }
 
 

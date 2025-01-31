@@ -37,85 +37,58 @@ import java.util.Optional;
         private JwtService jwtService;
 
         //@CrossOrigin(origins = "http://localhost:8083")
-        @PostMapping
-        public ResponseEntity<ProductModel> createProduct(
-                @RequestBody ProductModel product) throws IOException {
-            System.out.println(product);
-            System.out.println(product.getUserId());
-            // Fetch user details from User Service
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + RequestInterceptor.getToken());
-
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-            UserDTO userDTO = restTemplate.getForObject("http://USER-SERVICE/users/" + product.getUserId(), UserDTO.class,
-                    requestEntity);
-            System.out.println(userDTO+"ikujyghkughv");
-            // Validate user role
-            if (userDTO == null || userDTO.getRole() == null || !userDTO.getRole().toString().equalsIgnoreCase("seller")) {
-                throw new UnauthorizedUserException("Only sellers can add products. UserId: " + product.getUserId());
-            }
-
-            // Set userId and proceed with product creation
-            product.setUserId(product.getUserId());
-            ProductModel createdProduct = productService.createProduct(product);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
-        }
-
-//        @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+//        @PostMapping
 //        public ResponseEntity<ProductModel> createProduct(
-//                @RequestPart("product") @Valid @ModelAttribute ProductModel product,
-//                @RequestPart("image") MultipartFile image) throws IOException {
-//
-//            System.out.println("Product received: " + product);
-//            System.out.println("UserId: " + product.getUserId());
-//
-//            // Fetch user details from User Service with Authorization Header
+//                @RequestBody ProductModel product) throws IOException {
+//            System.out.println(product);
+//            System.out.println(product.getUserId());
+//            // Fetch user details from User Service
 //            HttpHeaders headers = new HttpHeaders();
 //            headers.set("Authorization", "Bearer " + RequestInterceptor.getToken());
 //
 //            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-//            ResponseEntity<UserDTO> response = restTemplate.exchange(
-//                    "http://USER-SERVICE/users/" + product.getUserId(),
-//                    HttpMethod.GET,
-//                    requestEntity,
-//                    UserDTO.class
-//            );
-//
-//            UserDTO userDTO = response.getBody();
-//            System.out.println("User fetched: " + userDTO);
-//
+//            UserDTO userDTO = restTemplate.getForObject("http://USER-SERVICE/users/" + product.getUserId(), UserDTO.class,
+//                    requestEntity);
+//            System.out.println(userDTO+"ikujyghkughv");
 //            // Validate user role
 //            if (userDTO == null || userDTO.getRole() == null || !userDTO.getRole().toString().equalsIgnoreCase("seller")) {
 //                throw new UnauthorizedUserException("Only sellers can add products. UserId: " + product.getUserId());
 //            }
 //
-//            // Set user ID correctly
-//            product.setUserId(userDTO.getId());
-//
-//            // Create and save the product
-//            ProductModel createdProduct = productService.createProduct(product, image);
+//            // Set userId and proceed with product creation
+//            product.setUserId(product.getUserId());
+//            ProductModel createdProduct = productService.createProduct(product);
 //
 //            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
 //        }
-//          @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-//          public ResponseEntity<?> createProduct(@RequestPart ProductModel productModel,
-//                                                 @RequestPart MultipartFile imageFile) {
-//              try {
-//                  HttpHeaders headers = new HttpHeaders();
-//                  headers.set("Authorization", "Bearer " + RequestInterceptor.getToken());
-//                   HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-//                  ProductModel product1 = productService.createProduct(productModel, imageFile);
-//                  return new ResponseEntity<>(product1, HttpStatus.CREATED);
-//              }
-//              catch(Exception e) {
-//                  return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//              }
-//          }
 
+        @PostMapping
+        public ResponseEntity<ProductModel> createProduct(@RequestBody ProductModel product) throws IOException {
+            // Extract User ID from JWT Token
+            String token = RequestInterceptor.getToken();
+            String userId = jwtService.extractUserId(token);  // Custom method to extract userId from token
 
+            System.out.println("Extracted User ID: " + userId);
 
+            // Fetch user details from User Service
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
 
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            UserDTO userDTO = restTemplate.getForObject("http://USER-SERVICE/users/" + userId, UserDTO.class, requestEntity);
+
+            if (userDTO == null || userDTO.getRole() == null || !userDTO.getRole().toString().equalsIgnoreCase("seller")) {
+                throw new UnauthorizedUserException("Only sellers can add products. UserId: " + userId);
+            }
+
+            // Associate the extracted userId with the product
+            product.setUserId(Long.parseLong(userId));
+
+            // Save the product
+            ProductModel createdProduct = productService.createProduct(product);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        }
 
         @PutMapping("/{id}")
         public ResponseEntity<ProductModel> updateProduct(@PathVariable Long id, @RequestBody ProductModel productDetails) {
@@ -129,13 +102,19 @@ import java.util.Optional;
             return ResponseEntity.ok(productDTO);
         }
 
+        @GetMapping("/user/{userId}")
+        public ResponseEntity<List<ProductModel>> getProductByUserId(@PathVariable Long userId) {
+            List<ProductModel> products = productService.getProductByUserId(userId);
+            return ResponseEntity.ok(products);  // Return the list of products with 200 OK
+        }
+
         @GetMapping("/username/{username}")
         public ResponseEntity<List<ProductModel>> getProductByUsername(@RequestParam String userName){
             List<ProductModel> Products = productService.getProductByUsername(userName);
             return ResponseEntity.ok(Products);
         }
 
-        @GetMapping
+        @GetMapping()
         public ResponseEntity<List<ProductModel>> getAllProducts() {
             List<ProductModel> products = productService.getAllProducts();
             return ResponseEntity.ok(products);  // Return the list of products with 200 OK

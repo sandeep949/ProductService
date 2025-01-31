@@ -1,11 +1,13 @@
 package com.project.ProductService.DTO;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
 
 public class ProductDTO {
 
         private Long id;
+        private Long userId;
         private String name;
         private String description;
         private double price;
@@ -16,9 +18,11 @@ public class ProductDTO {
 
     private String imageType;
 
-    @Lob // Specifies that the database should store this as a large object
-    private byte[] imageData;
-
+//    @Lob // Specifies that the database should store this as a large object
+//    private byte[] imageData;
+@Lob
+@Column(columnDefinition = "LONGTEXT")
+private String imageData;
         // Default Constructor
         public ProductDTO() {
         }
@@ -35,14 +39,23 @@ public class ProductDTO {
             this.id = id;
         }
 
-    public ProductDTO(Long id, String name, String description, double price, int quantity, String category, String imageName, String imageType, byte[] imageData) {
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public ProductDTO(Long id, Long userId, String name, String description, double price, int quantity, String category, String imageType, String imageData) {
         this.id = id;
+        this.userId = userId;
         this.name = name;
         this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.category = category;
-        this.imageName = imageName;
+//        this.imageName = imageName;
         this.imageType = imageType;
         this.imageData = imageData;
     }
@@ -87,13 +100,13 @@ public class ProductDTO {
             this.category = category;
         }
 
-    public String getImageName() {
-        return imageName;
-    }
-
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
-    }
+//    public String getImageName() {
+//        return imageName;
+//    }
+//
+//    public void setImageName(String imageName) {
+//        this.imageName = imageName;
+//    }
 
     public String getImageType() {
         return imageType;
@@ -103,11 +116,11 @@ public class ProductDTO {
         this.imageType = imageType;
     }
 
-    public byte[] getImageData() {
+    public String getImageData() {
         return imageData;
     }
 
-    public void setImageData(byte[] imageData) {
+    public void setImageData(String imageData) {
         this.imageData = imageData;
     }
 }
